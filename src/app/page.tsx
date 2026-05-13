@@ -1,65 +1,95 @@
+"use client";
+import { useState, useEffect } from "react";
+import { GlassButton } from "@/componens/GlassButton";
 import Image from "next/image";
 
 export default function Home() {
+  const WORK_TIME: number = 2 * 60;
+  const REST_TIME: number = 1 * 60;
+
+  const [timeText, setTimeText] = useState(() => GetFormattedTime(WORK_TIME));
+  const [isCount, setIsCount] = useState(false);
+  const [isRest, setIsRest] = useState(false);
+  const [startTime, setStartTime] = useState(0);
+  const [accumulatedTime, setAccumulatedTime] = useState(0);
+
+  function StartTimer() {
+    if (isCount) return;
+    setStartTime(Date.now());
+    setIsCount(true);
+  }
+
+  function StopTimer() {
+    if (!isCount) return;
+    setIsCount(false);
+    setAccumulatedTime((prev) => prev + Date.now() - startTime);
+  }
+
+  function ResetTimer() {
+    setTimeText(GetFormattedTime(WORK_TIME));
+    setAccumulatedTime(0);
+    setStartTime(Date.now());
+    setIsCount(false);
+  }
+
+  // 時刻を受け取り、表示する
+  function GetFormattedTime(time_minutes: number) {
+    const minutes: number = Math.floor(time_minutes / 60);
+    const seconds: number = time_minutes % 60;
+    const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return formattedTime;
+  }
+
+  function CalculateTimer() {
+    // 経過時間経過処理
+    const now = Date.now();
+    const totalMs = accumulatedTime + (now - startTime);
+    const remainingTime: number = WORK_TIME - Math.floor(totalMs / 1000);
+
+    // 残り時間判定
+    if (remainingTime <= 0) {
+      // 休憩開始処理
+    }
+
+    // タイマー表示処理
+    setTimeText(GetFormattedTime(remainingTime));
+  }
+
+  useEffect(() => {
+    if (!isCount) return;
+
+    const intervalID = setInterval(() => CalculateTimer(), 100);
+
+    return () => {
+      clearInterval(intervalID);
+    };
+  }, [isCount, accumulatedTime, startTime]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="relative min-h-screen flex flex-col items-center justify-center">
+      <Image
+        src="/background_base.jpeg"
+        alt="背景"
+        fill
+        className="object-cover -z-10 pointer-events-none"
+      />
+      <div className="flex flex-col justify-center items-center gap-6">
+        <h1 className="font-mono text-[42px] md:text-7xl">Pomodoro Timer</h1>
+        <h1 className="font-mono text-6xl md:text-7xl">
+          {isRest ? "Rest" : "Focus!"}
+        </h1>
+
+        <h1 className="font-mono text-6xl tracking-widest">{timeText}</h1>
+
+        <div className="flex flex-col justify-center items-center gap-6">
+          <GlassButton color="white" onClick={isCount ? StopTimer : StartTimer}>
+            {isCount ? "Stop" : "Start"}
+          </GlassButton>
+          <GlassButton color="white" onClick={ResetTimer}>
+            Reset
+          </GlassButton>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
