@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { GlassButton } from "@/componens/GlassButton";
 import Image from "next/image";
 
@@ -29,6 +29,47 @@ export default function Home() {
   const [startTime, setStartTime] = useState(0);
   const [accumulatedTime, setAccumulatedTime] = useState(0);
 
+  const ResetTimer = useCallback(() => {
+    setTimeText(GetFormattedTime(WORK_TIME));
+    setAccumulatedTime(0);
+    setStartTime(Date.now());
+    setIsCount(false);
+  }, []);
+
+  const EnterWork = useCallback(() => {
+    if (timerMode === "work") return;
+
+    // カウント開始時刻記録
+    ResetTimer();
+    if (!isCount) setIsCount(true);
+    setStartTime(Date.now());
+
+    // 状態遷移
+    setTimerMode("work");
+  }, [isCount, timerMode, ResetTimer]);
+
+  const EnterRest = useCallback(() => {
+    if (timerMode === "rest") return;
+
+    // カウント開始時刻記録
+    ResetTimer();
+    if (!isCount) setIsCount(true);
+    setStartTime(Date.now());
+
+    // 状態遷移
+    setTimerMode("rest");
+  }, [isCount, timerMode, ResetTimer]);
+
+  const EnterIdle = useCallback(() => {
+    if (timerMode === "idle") return;
+
+    // タイマーリセット
+    ResetTimer();
+
+    // 状態遷移
+    setTimerMode("idle");
+  }, [timerMode, ResetTimer]);
+
   // カウント可能な状態の時にタイマーを開始
   function StartTimer() {
     if (timerMode === "idle") return;
@@ -45,47 +86,6 @@ export default function Home() {
 
     setIsCount(false);
     setAccumulatedTime((prev) => prev + Date.now() - startTime);
-  }
-
-  function ResetTimer() {
-    setTimeText(GetFormattedTime(WORK_TIME));
-    setAccumulatedTime(0);
-    setStartTime(Date.now());
-    setIsCount(false);
-  }
-
-  function EnterWork() {
-    if (timerMode === "work") return;
-
-    // カウント開始時刻記録
-    ResetTimer();
-    if (!isCount) setIsCount(true);
-    setStartTime(Date.now());
-
-    // 状態遷移
-    setTimerMode("work");
-  }
-
-  function EnterRest() {
-    if (timerMode === "rest") return;
-
-    // カウント開始時刻記録
-    ResetTimer();
-    if (!isCount) setIsCount(true);
-    setStartTime(Date.now());
-
-    // 状態遷移
-    setTimerMode("rest");
-  }
-
-  function EnterIdle() {
-    if (timerMode === "idle") return;
-
-    // タイマーリセット
-    ResetTimer();
-
-    // 状態遷移
-    setTimerMode("idle");
   }
 
   function HandleMainButtonAction() {
@@ -151,7 +151,10 @@ export default function Home() {
       // 経過時間経過処理
       const now = Date.now();
       const totalMs = accumulatedTime + (now - startTime);
-      const remainingTime: number = time_criterion - Math.floor(totalMs / 1000);
+      const remainingTime: number = Math.max(
+        0,
+        time_criterion - Math.floor(totalMs / 1000),
+      );
 
       // 残り時間判定
       if (remainingTime <= 0) {
@@ -173,7 +176,7 @@ export default function Home() {
     return () => {
       clearInterval(intervalID);
     };
-  }, [isCount, accumulatedTime, startTime, timerMode]);
+  }, [isCount, accumulatedTime, startTime, timerMode, EnterWork, EnterRest]);
 
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center">
