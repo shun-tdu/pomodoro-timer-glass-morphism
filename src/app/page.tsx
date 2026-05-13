@@ -4,6 +4,14 @@ import { GlassButton } from "@/componens/GlassButton";
 import { CirclarProgress } from "@/componens/CirclarProgress";
 import Image from "next/image";
 
+// todo 何セット目かを表示する機能と大休憩の実装
+// ハンバーガーメニューで各種設定変更を可能に
+// 科目の追加
+// グラフ機能の追加
+// データの保存機能の追加
+// AI、カレンダー連携で、todoを元にポモドーロに落とし込んでくれる機能
+// タスクを分類して、どれくらいの時間で終わらせられるか推定していく（RLを実装してもいいかも）
+
 type TimerMode = "idle" | "work" | "rest";
 
 const MODE_DISPLAY_TEXT: Record<TimerMode, string> = {
@@ -12,8 +20,8 @@ const MODE_DISPLAY_TEXT: Record<TimerMode, string> = {
   rest: "Rest",
 };
 
-const WORK_TIME: number = 25 * 1;
-const REST_TIME: number = 5 * 1;
+const WORK_TIME: number = 25 * 60;
+const REST_TIME: number = 5 * 60;
 
 // 時刻を受け取り、表示する
 function GetFormattedTime(time_minutes: number) {
@@ -202,15 +210,16 @@ export default function Home() {
         fill
         className="object-cover -z-10 pointer-events-none"
       />
-      <div className="flex flex-col justify-center items-center gap-6">
-        <h1 className="font-mono text-[42px] md:text-7xl">Pomodoro Timer</h1>
 
-        <CirclarProgress ratio={ratio} size={320} strokeWidth={16}>
-          <div className="flex flex-col items-center justify-center gap-6">
-            <h1 className="font-mono text-6xl md:text-7xl">
+      <div className="flex flex-col justify-center items-center gap-6 md:gap-8">
+        <h1 className="font-mono text-[44px] md:text-6xl">Pomodoro Timer</h1>
+
+        <CirclarProgress ratio={ratio} size={300} strokeWidth={8}>
+          <div className="relative flex flex-col items-center justify-center">
+            <h1 className="font-mono text-6xl tracking-widest">{timeText}</h1>
+            <h1 className="font-mono text-3xl md:text-4xl absolute mt-4 top-full whitespace-nowrap">
               {MODE_DISPLAY_TEXT[timerMode]}
             </h1>
-            <h1 className="font-mono text-5xl tracking-widest">{timeText}</h1>
           </div>
         </CirclarProgress>
 
