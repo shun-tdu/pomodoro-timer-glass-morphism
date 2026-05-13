@@ -1,18 +1,19 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { GlassButton } from "@/componens/GlassButton";
+import { CirclarProgress } from "@/componens/CirclarProgress";
 import Image from "next/image";
 
 type TimerMode = "idle" | "work" | "rest";
 
 const MODE_DISPLAY_TEXT: Record<TimerMode, string> = {
-  idle: "Ready?",
-  work: "Focus!",
+  idle: "Ready",
+  work: "Focus",
   rest: "Rest",
 };
 
-const WORK_TIME: number = 2 * 10;
-const REST_TIME: number = 1 * 10;
+const WORK_TIME: number = 25 * 1;
+const REST_TIME: number = 5 * 1;
 
 // 時刻を受け取り、表示する
 function GetFormattedTime(time_minutes: number) {
@@ -28,19 +29,32 @@ export default function Home() {
   const [isCount, setIsCount] = useState(false);
   const [startTime, setStartTime] = useState(0);
   const [accumulatedTime, setAccumulatedTime] = useState(0);
+  const [remainingTime, setRemainingTime] = useState(WORK_TIME);
 
-  const ResetTimer = useCallback(() => {
-    setTimeText(GetFormattedTime(WORK_TIME));
-    setAccumulatedTime(0);
-    setStartTime(Date.now());
-    setIsCount(false);
-  }, []);
+  // プログレスバー表示処理
+  const currentCriterion = timerMode === "rest" ? REST_TIME : WORK_TIME;
+  const ratio =
+    isCount || accumulatedTime > 0 ? remainingTime / currentCriterion : 1.0;
+
+  const ResetTimer = useCallback(
+    (nextMode?: TimerMode) => {
+      const mode = nextMode || timerMode;
+      const criterion = mode == "rest" ? REST_TIME : WORK_TIME;
+
+      setTimeText(GetFormattedTime(criterion));
+      setRemainingTime(criterion);
+      setAccumulatedTime(0);
+      setStartTime(Date.now());
+      setIsCount(false);
+    },
+    [timerMode],
+  );
 
   const EnterWork = useCallback(() => {
     if (timerMode === "work") return;
 
     // カウント開始時刻記録
-    ResetTimer();
+    ResetTimer("work");
     if (!isCount) setIsCount(true);
     setStartTime(Date.now());
 
@@ -52,7 +66,7 @@ export default function Home() {
     if (timerMode === "rest") return;
 
     // カウント開始時刻記録
-    ResetTimer();
+    ResetTimer("rest");
     if (!isCount) setIsCount(true);
     setStartTime(Date.now());
 
@@ -64,7 +78,7 @@ export default function Home() {
     if (timerMode === "idle") return;
 
     // タイマーリセット
-    ResetTimer();
+    ResetTimer("idle");
 
     // 状態遷移
     setTimerMode("idle");
@@ -151,13 +165,15 @@ export default function Home() {
       // 経過時間経過処理
       const now = Date.now();
       const totalMs = accumulatedTime + (now - startTime);
-      const remainingTime: number = Math.max(
+      const newRemainingTime = Math.max(
         0,
         time_criterion - Math.floor(totalMs / 1000),
       );
 
+      setRemainingTime(newRemainingTime);
+
       // 残り時間判定
-      if (remainingTime <= 0) {
+      if (newRemainingTime <= 0) {
         if (timerMode === "work") {
           EnterRest();
         } else if (timerMode === "rest") {
@@ -166,7 +182,7 @@ export default function Home() {
       }
 
       // タイマー表示処理
-      setTimeText(GetFormattedTime(remainingTime));
+      setTimeText(GetFormattedTime(newRemainingTime));
     }
 
     if (!isCount) return;
@@ -188,11 +204,15 @@ export default function Home() {
       />
       <div className="flex flex-col justify-center items-center gap-6">
         <h1 className="font-mono text-[42px] md:text-7xl">Pomodoro Timer</h1>
-        <h1 className="font-mono text-6xl md:text-7xl">
-          {MODE_DISPLAY_TEXT[timerMode]}
-        </h1>
 
-        <h1 className="font-mono text-6xl tracking-widest">{timeText}</h1>
+        <CirclarProgress ratio={ratio} size={320} strokeWidth={16}>
+          <div className="flex flex-col items-center justify-center gap-6">
+            <h1 className="font-mono text-6xl md:text-7xl">
+              {MODE_DISPLAY_TEXT[timerMode]}
+            </h1>
+            <h1 className="font-mono text-5xl tracking-widest">{timeText}</h1>
+          </div>
+        </CirclarProgress>
 
         <div className="flex flex-col justify-center items-center gap-6">
           <GlassButton color="white" onClick={HandleMainButtonAction}>
