@@ -1,7 +1,11 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import { Subject, WorkRecord } from "@/app/page";
-import { Menu, X } from "lucide-react";
+import { Badge } from "./ui/Badge";
+import { SimpleIcon } from "./ui/SimpleIcon";
+import { Menu, X, Plus } from "lucide-react";
 import { ConfigPlane } from "./ConfigPlane";
+import { Modal } from "./ui/Modal";
+import { HexColorPicker } from "react-colorful";
 
 type HumburgerMenuProps = {
   workTime: number;
@@ -15,6 +19,58 @@ type HumburgerMenuProps = {
   setActiveSubjectId: Dispatch<SetStateAction<string>>;
 };
 
+function AddSubjectForm({
+  addSubject,
+}: {
+  addSubject: (name: string, color: string) => void;
+}) {
+  const [subjectName, setSubjectName] = useState("");
+  const [color, setColor] = useState("#3b82f6");
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        {/* 名前入力 */}
+        <label className="text-white font-mono text-xl">Subject Name :</label>
+        <input
+          type="text"
+          value={subjectName}
+          onChange={(e) => setSubjectName(e.target.value)}
+          placeholder="Programming, Math..."
+          className="w-full px-4 py-2 bg-white/20 text-white font-mono rounded-lg outline-none focus:ring-2 focus:ring-white/50 placeholder-white/40"
+        />
+        {/* 動作確認用：入力した文字がリアルタイムに表示されます */}
+        <p className="text-white/50 text-sm mt-1">入力中: {subjectName}</p>
+      </div>
+
+      {/* カラーピッカー */}
+      <div className="flex flex-col gap-4 items-center">
+        <label className="text-white font-mono text-xl w-full">Color :</label>
+        <HexColorPicker color={color} onChange={setColor} />
+        <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full">
+          <div
+            className="w-6 h-6 rounded-full border border-white/50"
+            style={{ backgroundColor: color }}
+          />
+          <span className="text-white font-mono uppercase">{color}</span>
+        </div>
+      </div>
+
+      {/* 追加ボタン */}
+      <button
+        className="mt-4 px-4 py-3 bg-white/20 text-white font-mono rounded-lg hover:bg-white/30 transition-colors"
+        onClick={() => {
+          console.log("追加するデータ:", { name: subjectName, color: color });
+          // ここに親コンポーネントへデータを渡す処理を書く
+          addSubject(subjectName, color);
+        }}
+      >
+        Add Subject
+      </button>
+    </div>
+  );
+}
+
 export function HumburgerMenu({
   workTime,
   setWorkTime,
@@ -27,9 +83,12 @@ export function HumburgerMenu({
   setActiveSubjectId,
 }: HumburgerMenuProps) {
   const [isOpenMenu, setIsOpenMenu] = useState(false);
+  const [isOpenAddSubjectModalOpen, setIsOpenAddSubjectModal] = useState(false);
+  const baseSize: number = 32;
 
   return (
     <>
+      {/* ハンバーガーアイコン */}
       <button
         onClick={() => setIsOpenMenu(true)}
         className="fixed z-50 top-4 left-4 p-3 md:top-8 md:left-8 md:p-3 bg-white/10 rounded-md backdrop-blur-md border-t border-l border-white/30 shadow-lg hover:bg-white/20 transform"
@@ -37,45 +96,60 @@ export function HumburgerMenu({
         <Menu className="w-8 h-8 text-white" />
       </button>
 
-      <div
-        className={`fixed inset-0 z-50 p-4 md:p-10 transition-all duration-300 ${
-          isOpenMenu ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+      {/* ハンバーガーメニュー本体 */}
+      <Modal
+        isOpen={isOpenMenu}
+        onClose={() => setIsOpenMenu(false)}
+        title="Settings"
       >
-        <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-          onClick={() => setIsOpenMenu(false)}
-        />
+        {/* 作業時間、休憩時間 */}
+        <ConfigPlane
+          name="Work Time"
+          value={workTime}
+          setValue={setWorkTime}
+        ></ConfigPlane>
+        <ConfigPlane
+          name="Rest Time"
+          value={restTime}
+          setValue={setRestTime}
+        ></ConfigPlane>
 
-        <div
-          className={`relative w-full h-full bg-white/20 backdrop-blur-xl border border-white/30 rounded-3xl shadow-2xl p-6 flex flex-col transition-transform duration-300 delay-75${isOpenMenu ? "translate-y-0 scale-100" : "translate-y-8 scale-95"}`}
-        >
-          {/*ヘッダー部分 */}
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-mono text-white">Settings</h2>
-            <button
-              onClick={() => setIsOpenMenu(false)}
-              className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
-            >
-              <X className="w-8 h-8 text-white" />
-            </button>
-          </div>
+        {/* 科目追加セクション */}
+        {/* 科目がカラー背景の横長角丸でNameが要素にあるコンポーネントが並んで、最後にプラスボタンがある。プラスボタンを押すと、科目追加のポップアップが出てきて、名前と色を選択 */}
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          {/* Subject一覧を表示 */}
+          {subjects.length === 0 ? (
+            <p className="text-white/50 font-mono">No Subjects added yet.</p>
+          ) : (
+            subjects.map((subject) => (
+              <Badge
+                key={subject.id}
+                height={baseSize}
+                name={subject.name}
+                color={subject.color}
+              />
+            ))
+          )}
 
-          {/*メニューのコンテンツ */}
-          <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
-            <ConfigPlane
-              name="Work Time"
-              value={workTime}
-              setValue={setWorkTime}
-            ></ConfigPlane>
-            <ConfigPlane
-              name="Rest Time"
-              value={restTime}
-              setValue={setRestTime}
-            ></ConfigPlane>
-          </div>
+          {/* Subject追加アイコン */}
+          <SimpleIcon
+            size={baseSize}
+            backgroundColor="#3b82f6"
+            onClick={() => setIsOpenAddSubjectModal(true)}
+          >
+            <Plus size={baseSize} color="white" />
+          </SimpleIcon>
         </div>
-      </div>
+      </Modal>
+
+      {/* 科目追加モーダル */}
+      <Modal
+        isOpen={isOpenAddSubjectModalOpen}
+        onClose={() => setIsOpenAddSubjectModal(false)}
+        title="Add Subject"
+      >
+        <AddSubjectForm addSubject={addSubject} />
+      </Modal>
     </>
   );
 }
