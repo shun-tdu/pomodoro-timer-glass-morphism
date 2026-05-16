@@ -14,6 +14,7 @@ type HumburgerMenuProps = {
   setRestTime: Dispatch<SetStateAction<number>>;
   subjects: Subject[];
   addSubject: (name: string, color: string) => void;
+  removeSubject: (id: string) => void;
   records: WorkRecord[];
   activeSubjectId: string;
   setActiveSubjectId: Dispatch<SetStateAction<string>>;
@@ -37,10 +38,8 @@ function AddSubjectForm({
           value={subjectName}
           onChange={(e) => setSubjectName(e.target.value)}
           placeholder="Programming, Math..."
-          className="w-full px-4 py-2 bg-white/20 text-white font-mono rounded-lg outline-none focus:ring-2 focus:ring-white/50 placeholder-white/40"
+          className="w-full px-4 py-2 bg-white/20 text-white font-mono rounded-lg outline-none focus:ring-inset focus:ring-2 focus:ring-white/50 placeholder-white/40"
         />
-        {/* 動作確認用：入力した文字がリアルタイムに表示されます */}
-        <p className="text-white/50 text-sm mt-1">入力中: {subjectName}</p>
       </div>
 
       {/* カラーピッカー */}
@@ -78,6 +77,7 @@ export function HumburgerMenu({
   setRestTime,
   subjects,
   addSubject,
+  removeSubject,
   records,
   activeSubjectId,
   setActiveSubjectId,
@@ -127,6 +127,7 @@ export function HumburgerMenu({
                 height={baseSize}
                 name={subject.name}
                 color={subject.color}
+                onDelete={() => removeSubject(subject.id)}
               />
             ))
           )}

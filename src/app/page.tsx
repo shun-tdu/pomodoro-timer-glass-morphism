@@ -4,10 +4,12 @@ import Image from "next/image";
 import { PomodoroTimer } from "@/componens/PomodoroTimer";
 import { HumburgerMenu } from "@/componens/HamburgerMenu";
 import { toast } from "react-hot-toast";
+import { Target } from "lucide-react";
 
 // todo 何セット目かを表示する機能と大休憩の実装
 // ハンバーガーメニューで各種設定変更を可能に
 // 科目の追加
+// 科目を消去する機能を追加
 // グラフ機能の追加
 // データの保存機能の追加
 // AI、カレンダー連携で、todoを元にポモドーロに落とし込んでくれる機能
@@ -62,6 +64,13 @@ export default function Home() {
     toast.success("Added the subject!");
   };
 
+  // 科目を削除する
+  const removeSubject = (id: string) => {
+    setSubjects((prevSubjects) => {
+      return prevSubjects.filter((subject) => subject.id !== id);
+    });
+  };
+
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-center">
       <Image
@@ -78,6 +87,7 @@ export default function Home() {
         setRestTime={setRestTimeMin}
         subjects={subjects}
         addSubject={addSubject}
+        removeSubject={removeSubject}
         records={records}
         activeSubjectId={activeSubjectId}
         setActiveSubjectId={setActiveSubjectId}
