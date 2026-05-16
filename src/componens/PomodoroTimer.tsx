@@ -36,8 +36,6 @@ function GetFormattedTime(time_minutes: number) {
     return formattedTime;
 }
 
-function SubjectScroll() {}
-
 export function PomodoroTimer({
     workTime,
     restTime,
@@ -238,16 +236,31 @@ export function PomodoroTimer({
 
     return (
         <div className="flex flex-col justify-center items-center gap-6 md:gap-8">
+            {/* タイトル */}
             <h1 className="font-mono text-[44px] md:text-6xl">
                 Pomodoro Timer
             </h1>
 
+            {/* 円状のタイマー表示領域 */}
             <CirclarProgress ratio={ratio} size={300} strokeWidth={8}>
-                <div className="relative flex flex-col items-center justify-center">
-                    <h1 className="font-mono text-6xl tracking-widest">
+                <div className="absolute inset-0 flex items-center justify-center">
+                    {/* 科目のドラムピッカー */}
+                    <div className="absolute top-8 w-3/4">
+                        <DrumPicker
+                            items={subjects.map((subject) => ({
+                                id: subject.id,
+                                label: subject.name,
+                            }))}
+                            activeId={activeSubjectId}
+                            setActiveId={setActiveSubjectId}
+                            height="h-24"
+                        />
+                    </div>
+
+                    <h1 className="font-mono text-6xl tracking-widest z-10">
                         {timeText}
                     </h1>
-                    <h1 className="font-mono text-3xl md:text-4xl absolute mt-4 top-full whitespace-nowrap">
+                    <h1 className="absolute bottom-12 font-mono text-3xl md:text-4xl whitespace-nowrap text-white/90">
                         {MODE_DISPLAY_TEXT[timerMode]}
                     </h1>
                 </div>
@@ -261,16 +274,6 @@ export function PomodoroTimer({
                     Reset
                 </GlassButton>
             </div>
-
-            {/* 科目のドラムピッカー */}
-            <DrumPicker
-                items={subjects.map((subject) => ({
-                    id: subject.id,
-                    label: subject.name,
-                }))}
-                activeId={activeSubjectId}
-                setActiveId={setActiveSubjectId}
-            />
         </div>
     );
 }

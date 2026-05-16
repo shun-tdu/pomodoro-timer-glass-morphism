@@ -14,10 +14,12 @@ export function DrumPicker({
     items,
     activeId,
     setActiveId,
+    height = "h-48",
 }: {
     items: PickerItem[];
     activeId: string;
     setActiveId: Dispatch<SetStateAction<string>>;
+    height?: string;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +56,7 @@ export function DrumPicker({
         <div
             ref={scrollRef}
             onScroll={handleScroll}
-            className="flex flex-col items-center gap-2 h-48 w-full overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden relative"
+            className={`flex flex-col items-center gap-2 w-full overflow-y-auto snap-y snap-mandatory [&::-webkit-scrollbar]:hidden relative ${height}`}
             style={{
                 maskImage:
                     "linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)",
