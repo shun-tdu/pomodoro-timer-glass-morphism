@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { PomodoroTimer } from "@/componens/PomodoroTimer";
 import { HumburgerMenu } from "@/componens/HamburgerMenu";
+import { toast } from "react-hot-toast";
 
 // todo 何セット目かを表示する機能と大休憩の実装
 // ハンバーガーメニューで各種設定変更を可能に
@@ -28,9 +29,7 @@ export type WorkRecord = {
 export default function Home() {
   const [workTimeMin, setWorkTimeMin] = useState(25);
   const [restTimeMin, setRestTimeMin] = useState(5);
-  const [subjects, setSubjects] = useState<Subject[]>([
-    { id: "1", name: "コーディング", color: "#3b82f6" },
-  ]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeSubjectId, setActiveSubjectId] = useState<string>("1");
   const [records, setRecords] = useState<WorkRecord[]>([]);
 
@@ -47,12 +46,20 @@ export default function Home() {
 
   // 科目を追加する
   const addSubject = (name: string, color: string) => {
+    // すでに同じSubjectが存在すれば、メッセージを出してreturn
+    const isAlreadyExist = subjects.some((subject) => subject.name === name);
+    if (isAlreadyExist) {
+      toast.error("Already exists subject name.");
+      return;
+    }
+
     const newSubject: Subject = {
       id: crypto.randomUUID(),
       name,
       color,
     };
     setSubjects((prev) => [...prev, newSubject]);
+    toast.success("Added the subject!");
   };
 
   return (
