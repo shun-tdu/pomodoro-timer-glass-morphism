@@ -8,6 +8,7 @@ import {
 } from "react";
 import { GlassButton } from "@/componens/GlassButton";
 import { CirclarProgress } from "@/componens/CirclarProgress";
+import { Subject } from "@/app/page";
 
 type TimerMode = "idle" | "work" | "rest";
 
@@ -22,6 +23,7 @@ type PomodoroTimerProps = {
   restTime: number;
   activeSubjectId: string;
   setActiveSubjectId: Dispatch<SetStateAction<string>>;
+  subjects: Subject[];
   addRecord: (subjectId: string, duration: number) => void;
 };
 
@@ -32,6 +34,8 @@ function GetFormattedTime(time_minutes: number) {
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   return formattedTime;
 }
+
+function SubjectScroll() {}
 
 export function PomodoroTimer({
   workTime,

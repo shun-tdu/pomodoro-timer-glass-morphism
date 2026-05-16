@@ -11,7 +11,7 @@ type ModalProps = {
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <div
-      className={`fixed inset-0 z-[100] p-4 md:p-10 flex items-center justify-center transition-opacity duration-300 will-change-auto ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+      className={`fixed inset-0 z-100 p-4 md:p-10 flex items-center justify-center transition-opacity duration-300 will-change-auto ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
     >
       {/* 背景 */}
       <div
