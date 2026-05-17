@@ -6,6 +6,8 @@ interface CircleProgressProps {
   size?: number;
   strokeWidth: number;
   children?: React.ReactNode;
+  color?: string;
+  isActive?: boolean;
 }
 
 export function CirclarProgress({
@@ -13,6 +15,8 @@ export function CirclarProgress({
   size = 300,
   strokeWidth = 12,
   children,
+  color = "#ffffff",
+  isActive = false,
 }: CircleProgressProps) {
   const center = size / 2;
   const radius = center - strokeWidth / 2;
@@ -23,6 +27,24 @@ export function CirclarProgress({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
+      {/* 波動アニメーション用のCSS */}
+      <style>
+        {`
+          @keyframes aura-ripple{
+            0% {transform: scale(1); opacity: 0.5; stroke-width: 4px;}
+            100% {transform: scale(1.4); opacity: 0; stroke-width: 0px;}
+          }
+          .animate-aura-1 {
+            animation: aura-ripple 3s cubic-bezier(0.1, 0.5, 0.3, 1) infinite;
+            transform-origin: center;
+          }
+          .animate-aura-2 {
+            animation: aura-ripple 3s cubic-bezier(0.1, 0.5, 0.3, 1) infinite 1.5s;
+            transform-origin: center;
+          }
+        `}
+      </style>
+
       <svg
         className="absolute inset-0 -rotate-90"
         width={size}
@@ -38,6 +60,30 @@ export function CirclarProgress({
             </feMerge>
           </filter>
         </defs>
+
+        {/* 波動レイヤー */}
+        {isActive && (
+          <>
+            <circle
+              cx={center}
+              cy={center}
+              r={radius}
+              fill="transparent"
+              stroke={color}
+              vectorEffect="non-scaling-stroke"
+              className="animate-aura-1"
+            />
+            <circle
+              cx={center}
+              cy={center}
+              r={radius}
+              fill="transparent"
+              stroke={color}
+              vectorEffect="non-scaling-stroke"
+              className="animate-aura-2"
+            />
+          </>
+        )}
 
         {/* 外側のぼんやりとした輪 */}
         <circle
@@ -55,7 +101,8 @@ export function CirclarProgress({
           cy={center}
           r={radius}
           fill="transparent"
-          stroke="rgba(255,255,255,0.15)"
+          stroke={color}
+          strokeOpacity={0.4}
           strokeWidth={strokeWidth + 4}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -70,7 +117,7 @@ export function CirclarProgress({
           cy={center}
           r={radius}
           fill="transparent"
-          stroke="rgba(255,255,255,0.9)"
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
