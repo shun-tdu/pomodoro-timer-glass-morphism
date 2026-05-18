@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, act } from "react";
 import Image from "next/image";
 import { PomodoroTimer } from "@/componens/PomodoroTimer";
 import { HumburgerMenu } from "@/componens/HamburgerMenu";
@@ -16,92 +16,91 @@ import { Target } from "lucide-react";
 // タスクを分類して、どれくらいの時間で終わらせられるか推定していく（RLを実装してもいいかも）
 
 export type Subject = {
-    id: string;
-    name: string;
-    color: string;
+  id: string;
+  name: string;
+  color: string;
 };
 
 export type WorkRecord = {
-    id: string;
-    subjectId: string;
-    duration: number;
-    createdAt: number;
+  id: string;
+  subjectId: string;
+  duration: number;
+  createdAt: number;
 };
 
 export default function Home() {
-    const [workTimeMin, setWorkTimeMin] = useState(25);
-    const [restTimeMin, setRestTimeMin] = useState(5);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [activeSubjectId, setActiveSubjectId] = useState<string>("1");
-    const [records, setRecords] = useState<WorkRecord[]>([]);
+  const [workTimeMin, setWorkTimeMin] = useState(25);
+  const [restTimeMin, setRestTimeMin] = useState(5);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [activeSubjectId, setActiveSubjectId] = useState<string>("1");
+  const [records, setRecords] = useState<WorkRecord[]>([]);
+  const prevSuvjectId = useRef(activeSubjectId);
 
-    // 指定したIDの科目の作業時間を追加する
-    const addRecord = (subjectId: string, duration: number) => {
-        const newRecord: WorkRecord = {
-            id: crypto.randomUUID(),
-            subjectId,
-            duration,
-            createdAt: Date.now(),
-        };
-        setRecords((prev) => [...prev, newRecord]);
+  // 指定したIDの科目の作業時間を追加する
+  const addRecord = (subjectId: string, duration: number) => {
+    const newRecord: WorkRecord = {
+      id: crypto.randomUUID(),
+      subjectId,
+      duration,
+      createdAt: Date.now(),
     };
+    setRecords((prev) => [...prev, newRecord]);
+  };
 
-    // 科目を追加する
-    const addSubject = (name: string, color: string) => {
-        // すでに同じSubjectが存在すれば、メッセージを出してreturn
-        const isAlreadyExist = subjects.some(
-            (subject) => subject.name === name,
-        );
-        if (isAlreadyExist) {
-            toast.error("Already exists subject name.");
-            return;
-        }
+  // 科目を追加する
+  const addSubject = (name: string, color: string) => {
+    // すでに同じSubjectが存在すれば、メッセージを出してreturn
+    const isAlreadyExist = subjects.some((subject) => subject.name === name);
+    if (isAlreadyExist) {
+      toast.error("Already exists subject name.");
+      return;
+    }
 
-        const newSubject: Subject = {
-            id: crypto.randomUUID(),
-            name,
-            color,
-        };
-        setSubjects((prev) => [...prev, newSubject]);
-        toast.success("Added the subject!");
+    const newSubject: Subject = {
+      id: crypto.randomUUID(),
+      name,
+      color,
     };
+    setSubjects((prev) => [...prev, newSubject]);
+    toast.success("Added the subject!");
+  };
 
-    // 科目を削除する
-    const removeSubject = (id: string) => {
-        setSubjects((prevSubjects) => {
-            return prevSubjects.filter((subject) => subject.id !== id);
-        });
-    };
+  // 科目を削除する
+  const removeSubject = (id: string) => {
+    setSubjects((prevSubjects) => {
+      return prevSubjects.filter((subject) => subject.id !== id);
+    });
+  };
 
-    return (
-        <main className="relative min-h-screen flex flex-col items-center justify-center">
-            <Image
-                src="/background_base.jpeg"
-                alt="背景"
-                fill
-                className="object-cover -z-10 pointer-events-none"
-            />
+  return (
+    <main className="relative min-h-screen flex flex-col items-center justify-center">
+      <Image
+        src="/background_base.jpeg"
+        alt="背景"
+        fill
+        className="object-cover -z-10 pointer-events-none"
+      />
 
-            <HumburgerMenu
-                workTime={workTimeMin}
-                setWorkTime={setWorkTimeMin}
-                restTime={restTimeMin}
-                setRestTime={setRestTimeMin}
-                subjects={subjects}
-                addSubject={addSubject}
-                removeSubject={removeSubject}
-                records={records}
-                activeSubjectId={activeSubjectId}
-                setActiveSubjectId={setActiveSubjectId}
-            ></HumburgerMenu>
-            <PomodoroTimer
-                workTime={workTimeMin * 60}
-                restTime={restTimeMin * 60}
-                activeSubjectId={activeSubjectId}
-                setActiveSubjectId={setActiveSubjectId}
-                subjects={subjects}
-                addRecord={addRecord}
-            ></PomodoroTimer>
-        </main>
-    );
+      <HumburgerMenu
+        workTime={workTimeMin}
+        setWorkTime={setWorkTimeMin}
+        restTime={restTimeMin}
+        setRestTime={setRestTimeMin}
+        subjects={subjects}
+        addSubject={addSubject}
+        removeSubject={removeSubject}
+        records={records}
+        activeSubjectId={activeSubjectId}
+        setActiveSubjectId={setActiveSubjectId}
+      ></HumburgerMenu>
+      <PomodoroTimer
+        workTime={workTimeMin * 60}
+        restTime={restTimeMin * 60}
+        activeSubjectId={activeSubjectId}
+        setActiveSubjectId={setActiveSubjectId}
+        subjects={subjects}
+        addRecord={addRecord}
+      ></PomodoroTimer>
+    </main>
+  );
 }

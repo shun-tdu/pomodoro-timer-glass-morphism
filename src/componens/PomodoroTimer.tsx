@@ -2,6 +2,7 @@
 import {
   useState,
   useEffect,
+  useRef,
   useCallback,
   Dispatch,
   SetStateAction,
@@ -51,6 +52,8 @@ export function PomodoroTimer({
   const [accumulatedTime, setAccumulatedTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(workTime);
   const [prevWorkTime, setPrevWorkTime] = useState(workTime);
+  const [focusStartTime, setFocusStartTime] = useState(0);
+  const prevSubjectId = useRef(activeSubjectId);
 
   // プログレスバー表示処理
   const currentCriterion = timerMode === "rest" ? restTime : workTime;
@@ -88,6 +91,7 @@ export function PomodoroTimer({
     ResetTimer("work");
     if (!isCount) setIsCount(true);
     setStartTime(Date.now());
+    setFocusStartTime(Date.now());
 
     // 状態遷移
     setTimerMode("work");
@@ -216,9 +220,36 @@ export function PomodoroTimer({
       setTimeText(GetFormattedTime(newRemainingTime));
     }
 
+    // 科目ごとに作業時間を加算する処理
+    function CalculateSubjectFocusTime() {
+      // 科目の切り替わり時 or Startボタンを押した時に現在の科目の開始時刻を保存する
+      // 科目の切り替わりの時に、作業開始時刻と現時刻の差分をとってaddRecordに渡す。
+      // 1. 科目の切り替わりを扱う関数を準備
+      // 2. UseEffect内で科目の切り替わりを検知上の関数を呼び出す
+      // 3. 科目の切り替わりを扱う関数で現在の時刻から科目の開始時刻を引いて過去の科目IDを参照して作業時間を足す
+      // 4. 取り組んでいる科目の
+      //
+
+      // 現在アクティブな科目と直前の集中していた科目が同じなら早期リターン
+      if (activeSubjectId === prevSubjectId.current) return;
+
+      // 現在アクティブな科目の集中した時間を計算し、レコードに加算する
+      const focusDurationMs: number = Date.now() - focusStartTime;
+      const focusDuration = Math.floor(focusDurationMs / 1000);
+      addRecord(activeSubjectId, focusDuration);
+
+      // prevSubjectIdの更新
+      prevSubjectId.current = activeSubjectId;
+    }
+
+    // カウント中じゃないなら早期リターン
     if (!isCount) return;
 
+    // 100 msごとにタイマーを計算
     const intervalID = setInterval(() => CalculateTimer(), 100);
+
+    // アクティブな科目の勉強時間を記録
+    CalculateSubjectFocusTime();
 
     return () => {
       clearInterval(intervalID);
@@ -232,6 +263,10 @@ export function PomodoroTimer({
     EnterRest,
     restTime,
     workTime,
+    activeSubjectId,
+    prevSubjectId,
+    focusStartTime,
+    addRecord,
   ]);
 
   return (
