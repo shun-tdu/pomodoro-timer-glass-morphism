@@ -6,6 +6,7 @@ import { Menu, X, Plus } from "lucide-react";
 import { ConfigPlane } from "./ConfigPlane";
 import { Modal } from "./ui/Modal";
 import { HexColorPicker } from "react-colorful";
+import { SubjectBarChart } from "./BarGraph";
 
 type HumburgerMenuProps = {
   workTime: number;
@@ -145,17 +146,14 @@ export function HumburgerMenu({
           </SimpleIcon>
         </div>
 
-        {/* テスト用 subjectの勉強時間 */}
-        <div className="flex flex-col items-center gap-2">
-          {records.map((record) => (
-            <p className="font-mono text-white" key={record.id}>
-              科目ID:{" "}
-              {subjects.find((subject) => subject.id === record.subjectId)
-                ?.name || "不明な科目"}{" "}
-              / 作業時間: {record.duration}
-            </p>
-          ))}
-        </div>
+        {/* 科目毎の勉強時間のチャート */}
+        {records.length === 0 ? (
+          // 勉強時間の記録が0の場合
+          <p className="text-white/50 font-mono"> No Recods added yet.</p>
+        ) : (
+          // 勉強時間の記録がある場合はグラフを表示する
+          <SubjectBarChart records={records} subjects={subjects} />
+        )}
       </Modal>
 
       {/* 科目追加モーダル */}
