@@ -1,10 +1,9 @@
 "use client";
-import { useState, useEffect, useCallback, useRef, act } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import { PomodoroTimer } from "@/componens/PomodoroTimer";
 import { HumburgerMenu } from "@/componens/HamburgerMenu";
 import { toast } from "react-hot-toast";
-import { Target } from "lucide-react";
 
 // todo 何セット目かを表示する機能と大休憩の実装
 // ハンバーガーメニューで各種設定変更を可能に
@@ -34,18 +33,32 @@ export default function Home() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [activeSubjectId, setActiveSubjectId] = useState<string>("1");
   const [records, setRecords] = useState<WorkRecord[]>([]);
-  const prevSuvjectId = useRef(activeSubjectId);
 
   // 指定したIDの科目の作業時間を追加する
-  const addRecord = (subjectId: string, duration: number) => {
-    const newRecord: WorkRecord = {
-      id: crypto.randomUUID(),
-      subjectId,
-      duration,
-      createdAt: Date.now(),
-    };
-    setRecords((prev) => [...prev, newRecord]);
-  };
+  const addRecord = useCallback((subjectId: string, duration: number) => {
+    setRecords((prev) => {
+      // 既にSubjectIdが存在するなら、そのRecordに加算、ない場合はRecordを新規作成
+      const isExist = prev.some((record) => record.subjectId === subjectId);
+
+      if (isExist) {
+        return prev.map((record) =>
+          record.subjectId === subjectId
+            ? { ...record, duration: record.duration + duration }
+            : record,
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            subjectId,
+            duration,
+            createdAt: Date.now(),
+          },
+        ];
+      }
+    });
+  }, []);
 
   // 科目を追加する
   const addSubject = (name: string, color: string) => {

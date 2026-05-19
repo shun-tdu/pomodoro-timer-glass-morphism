@@ -45,6 +45,7 @@ export function PomodoroTimer({
   subjects,
   addRecord,
 }: PomodoroTimerProps) {
+  // Stateの定義
   const [timeText, setTimeText] = useState(() => GetFormattedTime(workTime));
   const [timerMode, setTimerMode] = useState<TimerMode>("idle");
   const [isCount, setIsCount] = useState(false);
@@ -52,8 +53,10 @@ export function PomodoroTimer({
   const [accumulatedTime, setAccumulatedTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(workTime);
   const [prevWorkTime, setPrevWorkTime] = useState(workTime);
-  const [focusStartTime, setFocusStartTime] = useState(0);
-  const prevSubjectId = useRef(activeSubjectId);
+
+  // Refの定義
+  const subjectSessionStart = useRef<number | null>(null);
+  const trackedSubjectId = useRef(activeSubjectId);
 
   // プログレスバー表示処理
   const currentCriterion = timerMode === "rest" ? restTime : workTime;
@@ -91,7 +94,6 @@ export function PomodoroTimer({
     ResetTimer("work");
     if (!isCount) setIsCount(true);
     setStartTime(Date.now());
-    setFocusStartTime(Date.now());
 
     // 状態遷移
     setTimerMode("work");
@@ -186,6 +188,25 @@ export function PomodoroTimer({
     return button_text;
   }
 
+  // 科目ごとに作業時間を加算する処理
+  const CalculateSubjectFocusTime = useCallback(() => {
+    // subjectSessionStartが未更新なら早期リターン
+    if (subjectSessionStart.current === null) return;
+    // 現在アクティブな科目と直前の集中していた科目が同じなら早期リターン
+    if (trackedSubjectId.current === activeSubjectId) return;
+
+    // 現在アクティブな科目の集中した時間を計算し、レコードに加算する
+    const focusDuration = Math.floor(
+      (Date.now() - subjectSessionStart.current) / 1000,
+    );
+    if (focusDuration > 0) addRecord(trackedSubjectId.current, focusDuration);
+
+    // prevSubjectIdの更新
+    trackedSubjectId.current = activeSubjectId;
+    // FocusStartTimeの更新
+    subjectSessionStart.current = Date.now();
+  }, [activeSubjectId, addRecord]);
+
   useEffect(() => {
     // タイマー画面の状態変更を司る
     function CalculateTimer() {
@@ -220,28 +241,6 @@ export function PomodoroTimer({
       setTimeText(GetFormattedTime(newRemainingTime));
     }
 
-    // 科目ごとに作業時間を加算する処理
-    function CalculateSubjectFocusTime() {
-      // 科目の切り替わり時 or Startボタンを押した時に現在の科目の開始時刻を保存する
-      // 科目の切り替わりの時に、作業開始時刻と現時刻の差分をとってaddRecordに渡す。
-      // 1. 科目の切り替わりを扱う関数を準備
-      // 2. UseEffect内で科目の切り替わりを検知上の関数を呼び出す
-      // 3. 科目の切り替わりを扱う関数で現在の時刻から科目の開始時刻を引いて過去の科目IDを参照して作業時間を足す
-      // 4. 取り組んでいる科目の
-      //
-
-      // 現在アクティブな科目と直前の集中していた科目が同じなら早期リターン
-      if (activeSubjectId === prevSubjectId.current) return;
-
-      // 現在アクティブな科目の集中した時間を計算し、レコードに加算する
-      const focusDurationMs: number = Date.now() - focusStartTime;
-      const focusDuration = Math.floor(focusDurationMs / 1000);
-      addRecord(activeSubjectId, focusDuration);
-
-      // prevSubjectIdの更新
-      prevSubjectId.current = activeSubjectId;
-    }
-
     // カウント中じゃないなら早期リターン
     if (!isCount) return;
 
@@ -264,10 +263,25 @@ export function PomodoroTimer({
     restTime,
     workTime,
     activeSubjectId,
-    prevSubjectId,
-    focusStartTime,
     addRecord,
+    CalculateSubjectFocusTime,
   ]);
+
+  useEffect(() => {
+    if (isCount) {
+      // Start/Resume:　セッション開始時刻をリセット
+      subjectSessionStart.current = Date.now();
+      trackedSubjectId.current = activeSubjectId;
+    } else {
+      // Stpp: 現在のSubjectの作業時間を記録
+      if (subjectSessionStart.current == null) return;
+      const secs = Math.floor(
+        (Date.now() - subjectSessionStart.current) / 1000,
+      );
+      if (secs > 0) addRecord(trackedSubjectId.current, secs);
+      subjectSessionStart.current = null;
+    }
+  }, [isCount, addRecord, activeSubjectId]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-6 md:gap-8">
