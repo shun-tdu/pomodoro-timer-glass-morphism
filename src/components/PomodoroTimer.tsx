@@ -7,8 +7,8 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { GlassButton } from "@/componens/GlassButton";
-import { CirclarProgress } from "@/componens/CirclarProgress";
+import { GlassButton } from "@/components/GlassButton";
+import { CirclarProgress } from "@/components/CirclarProgress";
 import { Subject } from "@/app/page";
 import { DrumPicker } from "./ui/DrumPicker";
 
@@ -273,7 +273,7 @@ export function PomodoroTimer({
       subjectSessionStart.current = Date.now();
       trackedSubjectId.current = activeSubjectId;
     } else {
-      // Stpp: 現在のSubjectの作業時間を記録
+      // Stop: 現在のSubjectの作業時間を記録
       if (subjectSessionStart.current == null) return;
       const secs = Math.floor(
         (Date.now() - subjectSessionStart.current) / 1000,
