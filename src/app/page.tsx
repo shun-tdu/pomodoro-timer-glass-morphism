@@ -1,18 +1,29 @@
 "use client";
 import { useCallback, useState } from "react";
 import Image from "next/image";
-import { PomodoroTimer } from "@/componens/PomodoroTimer";
-import { HumburgerMenu } from "@/componens/HamburgerMenu";
+import { PomodoroTimer } from "@/components/PomodoroTimer";
+import { HumburgerMenu } from "@/components/HamburgerMenu";
 import { toast } from "react-hot-toast";
+import { createClient } from "@/lib/supabase/client";
 
 // todo 何セット目かを表示する機能と大休憩の実装
-// ハンバーガーメニューで各種設定変更を可能に
-// 科目の追加
-// 科目を消去する機能を追加
-// グラフ機能の追加
 // データの保存機能の追加
 // AI、カレンダー連携で、todoを元にポモドーロに落とし込んでくれる機能
 // タスクを分類して、どれくらいの時間で終わらせられるか推定していく（RLを実装してもいいかも）
+
+const supabase = createClient();
+
+const handleLogin = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${location.origin}/auth/callback` },
+  });
+};
+
+const handleLogout = async () => {
+  await supabase.auth.signOut();
+  location.href = "/login";
+};
 
 export type Subject = {
   id: string;
@@ -103,8 +114,7 @@ export default function Home() {
         addSubject={addSubject}
         removeSubject={removeSubject}
         records={records}
-        activeSubjectId={activeSubjectId}
-        setActiveSubjectId={setActiveSubjectId}
+        handleLogout={handleLogout}
       ></HumburgerMenu>
       <PomodoroTimer
         workTime={workTimeMin * 60}

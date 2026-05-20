@@ -7,8 +7,8 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { GlassButton } from "@/componens/GlassButton";
-import { CirclarProgress } from "@/componens/CirclarProgress";
+import { GlassButton } from "@/components/GlassButton";
+import { CirclarProgress } from "@/components/CirclarProgress";
 import { Subject } from "@/app/page";
 import { DrumPicker } from "./ui/DrumPicker";
 
