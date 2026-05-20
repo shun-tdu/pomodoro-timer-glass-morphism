@@ -17,8 +17,7 @@ type HumburgerMenuProps = {
   addSubject: (name: string, color: string) => void;
   removeSubject: (id: string) => void;
   records: WorkRecord[];
-  activeSubjectId: string;
-  setActiveSubjectId: Dispatch<SetStateAction<string>>;
+  handleLogout: () => void;
 };
 
 function AddSubjectForm({
@@ -83,8 +82,7 @@ export function HumburgerMenu({
   addSubject,
   removeSubject,
   records,
-  activeSubjectId,
-  setActiveSubjectId,
+  handleLogout,
 }: HumburgerMenuProps) {
   const [isOpenMenu, setIsOpenMenu] = useState(false);
   const [isOpenAddSubjectModalOpen, setIsOpenAddSubjectModal] = useState(false);
@@ -154,6 +152,13 @@ export function HumburgerMenu({
           // 勉強時間の記録がある場合はグラフを表示する
           <SubjectBarChart records={records} subjects={subjects} />
         )}
+        {/* ログアウトボタン */}
+        <button
+          className="text-white font-mono bg-red-400 px-4 py-2 rounded-lg"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
       </Modal>
 
       {/* 科目追加モーダル */}
