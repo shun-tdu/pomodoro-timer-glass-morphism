@@ -57,6 +57,8 @@ export function PomodoroTimer({
   // Refの定義
   const subjectSessionStart = useRef<number | null>(null);
   const trackedSubjectId = useRef(activeSubjectId);
+  const addRecordRef = useRef(addRecord);
+  useEffect(() => { addRecordRef.current = addRecord; }, [addRecord]);
 
   // プログレスバー表示処理
   const currentCriterion = timerMode === "rest" ? restTime : workTime;
@@ -278,10 +280,12 @@ export function PomodoroTimer({
       const secs = Math.floor(
         (Date.now() - subjectSessionStart.current) / 1000,
       );
-      if (secs > 0) addRecord(trackedSubjectId.current, secs);
+      if (secs > 0) addRecordRef.current(trackedSubjectId.current, secs);
       subjectSessionStart.current = null;
     }
-  }, [isCount, addRecord, activeSubjectId]);
+  // addRecord の参照変化で再実行されると subjectSessionStart がリセットされるため ref 経由で参照する
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCount]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-6 md:gap-8">
