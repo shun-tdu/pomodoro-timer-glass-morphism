@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# Pomodoro Timer
 
-First, run the development server:
+**作業時間を科目ごとに記録・可視化する、ポモドーロ・テクニック向けタイマー**
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
+[![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)](https://vercel.com)
+
+**▶ Live Demo: https://pomodoro-timer-glass-morphism.vercel.app/**
+
+</div>
+
+---
+
+## 概要
+
+ポモドーロ・テクニック（25分作業 + 5分休憩）で集中を管理し、**「どの科目に・どれだけ取り組んだか」を記録してグラフで振り返る**ことができる Web アプリです。Google ログインでユーザーごとに作業ログが保存され、複数デバイスから同じ記録にアクセスできます。
+
+UI は Glass Morphism（すりガラス風）で、ボタン・ピッカー・モーダルなどを自作コンポーネントとして実装しています。
+
+---
+
+## スクリーンショット
+
+<p align="center">
+  <img src="docs/images/timer.jpg"    width="240" alt="タイマー画面" />
+  <img src="docs/images/graph.jpg"    width="240" alt="グラフ画面" />
+  <img src="docs/images/subjects.jpg" width="240" alt="科目管理" />
+</p>
+
+<p align="center">
+  <em>左から：タイマー（円形プログレス＋科目選択） / 科目別の作業時間グラフ / 科目の追加・色設定</em>
+</p>
+
+---
+
+## 主な機能
+
+- **ポモドーロタイマー**: 作業／休憩時間をドラムピッカーで設定。円形プログレスで残り時間を表示。
+- **科目別の時間記録**: 科目（名前 + 色）を登録し、作業セッションを科目ごとに計測・保存。
+- **作業時間の可視化**: 蓄積した作業記録を科目別の棒グラフで振り返り。
+- **Google ログイン**: Supabase Auth による認証。ユーザーごとに科目・記録を分離して保存。
+- **バックグラウンドでも正確な計測**: タブが非アクティブでも作業時間がずれない（後述）。
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---|---|
+| フレームワーク | Next.js 16 (App Router) / React 19 |
+| 言語 | TypeScript |
+| スタイリング | Tailwind CSS |
+| 認証・DB | Supabase (Auth / PostgreSQL) |
+| グラフ | Nivo |
+| UI 補助 | lucide-react / react-hot-toast / react-colorful |
+| デプロイ | Vercel |
+
+---
+
+## 設計のポイント
+
+### 1. middleware による SSR 認証ガード
+
+`middleware.ts` で `@supabase/ssr` を使い、サーバーサイドでセッションを検証してからページを返す。未ログインで保護ページにアクセスした場合は `/login` へ、ログイン済みで `/login` にアクセスした場合は `/` へリダイレクトする。クライアント側の描画を待たずにアクセス制御できる。
+
+### 2. タイムスタンプ方式によるバックグラウンド計測
+
+`setInterval` のカウントは、ブラウザが非アクティブタブで間引くため、タブを離れると経過時間がずれる。これを避けるため、**開始時刻（`Date.now()`）と累積時間から経過を都度算出**する方式にしている。表示更新はインターバルで行いつつ、記録される作業時間は実時刻ベースなので、タブを切り替えても計測が正確に保たれる。
+
+### 3. Glass Morphism の自作コンポーネント
+
+`GlassButton` / `DrumPicker` / `Modal` / `Badge` などを自前で実装し、すりガラス風の統一された UI を構築している。
+
+---
+
+## ローカル開発
 
 ```bash
+# 1. 依存をインストール
+npm install
+
+# 2. 環境変数を設定（Supabase プロジェクトの値）
+#    .env.local を作成し以下を記述
+# NEXT_PUBLIC_SUPABASE_URL=...
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+
+# 3. 開発サーバー起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Supabase 側には `subjects`（id / name / color / user_id）と `work_records`（id / subject_id / duration / user_id / created_at）のテーブルが必要です。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ライセンス
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+個人開発のポートフォリオ用プロジェクトです。
